@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:granite="http://www.adobe.com/jcr/granite/1.0"
+    jcr:primaryType="nt:unstructured"
+    sling:resourceType="apps/dialogeditor"
+    sling:resourceSuperType="granite/ui/components/shell/page"
+    consoleId="ahmedmusallam-dialogeditor"
+    jcr:title="Dialog Editor">
+    <title jcr:primaryType="nt:unstructured" sling:resourceType="dialogeditor/components/title"/>
+    <head jcr:primaryType="nt:unstructured">
+        <clientlibs
+            jcr:primaryType="nt:unstructured"
+            sling:resourceType="granite/ui/components/coral/foundation/includeclientlibs"
+            categories="[granite.ui.coral.foundation,dialogeditor.vendor,dialogeditor.main]"/>
+    </head>
+    <content
+        jcr:primaryType="nt:unstructured"
+        sling:resourceType="granite/ui/components/coral/foundation/container">
+        <items jcr:primaryType="nt:unstructured">
+            <content jcr:primaryType="nt:unstructured"
+                sling:resourceType="dialogeditor/components/body"/>
+        </items>
+    </content>
+    <actions jcr:primaryType="nt:unstructured">
+        <primary jcr:primaryType="nt:unstructured">
+            <refresh jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
+                variant="actionBar"
+                granite:id="refresh"
+                href="#"
+                icon="refresh"/>
+            <separator jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
+                variant="actionBar"
+                granite:id="split-direction"
+                href="#"
+                icon="separator"/>
+        </primary>
+    </actions>
+</jcr:root>

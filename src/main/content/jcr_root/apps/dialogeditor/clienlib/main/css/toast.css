@@ -1,0 +1,47 @@
+/**
+ * Based on: jQuery toast plugin created by Kamran Ahmed copyright MIT license 2014
+ */
+.toast-wrapper {
+  display: block;
+  position: fixed;
+  width: 250px;
+  margin: 0;
+  padding: 0;
+  letter-spacing: normal;
+  z-index: 9000 !important;
+}
+
+
+.toast-wrapper .toast {
+  width: 100%;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+/* Alert footer aligns right, for some reason */
+.toast-wrapper .toast coral-alert-footer {
+  text-align: left;
+}
+
+
+/* POSITIONING */
+
+.toast-wrapper.bottom-left {
+  bottom: 1em;
+  left: 1em;
+}
+
+.toast-wrapper.bottom-right {
+  bottom: 1em;
+  right: 2em;
+}
+
+.toast-wrapper.top-left {
+  top: 1em;
+  left: 1em;
+}
+
+.toast-wrapper.top-right {
+  top: 1em;
+  right: 2em;
+}
