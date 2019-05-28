@@ -4,12 +4,6 @@
 
 A code editor, in browser for dialogs!
 
-<br>
-<p align="center">
-  <img src="docs/logo.png" alt="Gradle AEM Plugin Logo"/>
-</p>
-<br>
-
 ## Description
 
 This project could be used to start developing **application** based on AEM.
