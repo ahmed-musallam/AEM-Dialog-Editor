@@ -1,5 +1,4 @@
 codemirror-5.47.0/lib/codemirror.js
-codemirror-5.47.0/lib/util/formatting.js
 codemirror-5.47.0/addon/hint/show-hint.js
 codemirror-5.47.0/addon/hint/xml-hint.js
 codemirror-5.47.0/mode/xml/xml.js
