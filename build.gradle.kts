@@ -3,12 +3,10 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     id("com.cognifide.aem.bundle")
-    id("com.cognifide.aem.instance")
-    id("com.neva.fork")
 }
 
 description = "AEM Dialog Editor"
-defaultTasks(":aemSatisfy", ":aemDeploy")
+defaultTasks("packageDeploy")
 
 group = "com.ahmedmusallam.aem"
 version = "1.0.0-SNAPSHOT"
@@ -34,22 +32,3 @@ dependencies {
 
     compileOnly("com.adobe.aem:uber-jar:6.4.0:obfuscated-apis")
 }
-
-tasks {
-    withType<Test>().configureEach {
-        failFast = true
-        useJUnitPlatform()
-        testLogging {
-            events = setOf(TestLogEvent.FAILED)
-            exceptionFormat = TestExceptionFormat.SHORT
-        }
-
-        dependencies {
-            "testImplementation"("org.junit.jupiter:junit-jupiter-api:5.3.2")
-            "testRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine:5.3.2")
-            "testImplementation"("io.wcm:io.wcm.testing.aem-mock.junit5:2.3.2")
-        }
-    }
-}
-
-apply(from = "gradle/fork.gradle.kts")

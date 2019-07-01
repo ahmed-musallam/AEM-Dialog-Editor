@@ -7,7 +7,6 @@ repositories {
 }
 
 dependencies {
-    implementation("com.cognifide.gradle:aem-plugin:6.3.0")
-    implementation("com.neva.gradle:fork-plugin:3.1.1")
+    implementation("com.cognifide.gradle:aem-plugin:7.0.2")
 }
 
