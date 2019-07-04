@@ -25,9 +25,9 @@ $(function () {
       } else return path;
     },
     prefixWith: function (string, prefix) {
-      if(!string || !prefix) return;
+      if (!string || !prefix) return;
       var trimmed = string.trim();
-      if(!trimmed.startsWith(prefix)) {
+      if (!trimmed.startsWith(prefix)) {
         return prefix + trimmed;
       } else return string;
     }
@@ -65,7 +65,7 @@ $(function () {
       this._bindEvents();
 
     },
-    _saveConfig () {
+    _saveConfig() {
       localStorage.setItem('dialogEditorState', JSON.stringify(this.config));
     },
     _initParentSelector: function () {
@@ -76,7 +76,7 @@ $(function () {
         placement: Coral.Overlay.placement.BOTTOM,
         target: SELECTOR.componentParentsButton,
       });
-      var selectList = new Coral.SelectList().set({loading: true});
+      var selectList = new Coral.SelectList().set({ loading: true });
       selectList.style.minWidth = '50px';
       overlay.appendChild(selectList)
       $parentSelectorButton = $(SELECTOR.componentParentsButton);
@@ -84,13 +84,13 @@ $(function () {
 
       $.get('/apps/dialogeditor.dialog.json' + Util.removeExtension(that._dialogPath))
         .then(function (response) {
-          selectList.set({loading: false});
+          selectList.set({ loading: false });
           selectList.items.clear()
           response.dialogAncestorPaths.forEach(function (path, i) {
-            var space = '&nbsp;'.repeat(i*2);
+            var space = '&nbsp;'.repeat(i * 2);
             var itemHtml = space + '<coral-icon icon="breakdown"></coral-icon>' + path;
-            var selectItem = new Coral.SelectList.Item().set({ innerHTML: itemHtml, selected: i == 0});
-            selectItem.on('click', function() {
+            var selectItem = new Coral.SelectList.Item().set({ innerHTML: itemHtml, selected: i == 0 });
+            selectItem.on('click', function () {
               var pathWithExtension = Util.addHtmlExtension(path)
               that.setDialogPath(pathWithExtension);
               that.refresh();
@@ -101,12 +101,16 @@ $(function () {
         })
 
       $parentSelectorButton.click(function () {
+        event.stopPropagation(); // don't bubble (gum) ;)
         if (overlay.classList.contains('is-open')) {
           overlay.hide()
         } else {
           overlay.show()
         }
-      })
+      });
+      $(window).click(function () {
+        overlay.hide() // click outside the overlay
+      });
     },
     _renderError: function () {
       this._wrapper.children().hide();
@@ -191,7 +195,7 @@ $(function () {
 
     refreshDialog: function () {
       var that = this;
-      var overridePath = Util.prefixWith(that._dialogPath,'/mnt/override')
+      var overridePath = Util.prefixWith(that._dialogPath, '/mnt/override')
       $.get(overridePath + '/')
         .then(function (data) {
           var parsedHtml = $.parseHTML(data);
@@ -211,12 +215,12 @@ $(function () {
             that._dialog.append(js);
           }
           // simulate dialog-loaded
-          setTimeout(function() {
+          setTimeout(function () {
             $(document).trigger("dialog-loaded", {
               dialog: dialogEl
             })
           }, 1000);
-         
+
         });
     },
     updateDialogNode: function () {
@@ -240,85 +244,4 @@ $(function () {
   }
 
   window.DialogEditor.init();
-
-
-
-  /*
-  var dummy = {
-    attrs: {
-      color: ["red", "green", "blue", "purple", "white", "black", "yellow"],
-      size: ["large", "medium", "small"],
-      description: null
-    },
-    children: []
-  };
-
-  var tags = {
-    "!top": ["top"],
-    "!attrs": {
-      id: null,
-      class: ["A", "B", "C"]
-    },
-    top: {
-      attrs: {
-        lang: ["en", "de", "fr", "nl"],
-        freeform: null
-      },
-      children: ["animal", "plant"]
-    },
-    animal: {
-      attrs: {
-        name: null,
-        isduck: ["yes", "no"]
-      },
-      children: ["wings", "feet", "body", "head", "tail"]
-    },
-    plant: {
-      attrs: { name: null },
-      children: ["leaves", "stem", "flowers"]
-    },
-    wings: dummy, feet: dummy, body: dummy, head: dummy, tail: dummy,
-    leaves: dummy, stem: dummy, flowers: dummy
-  };
-
-  function completeAfter(cm, pred) {
-    var cur = cm.getCursor();
-    if (!pred || pred()) setTimeout(function () {
-      if (!cm.state.completionActive)
-        cm.showHint({ completeSingle: false });
-    }, 100);
-    return CodeMirror.Pass;
-  }
-
-  function completeIfAfterLt(cm) {
-    return completeAfter(cm, function () {
-      var cur = cm.getCursor();
-      return cm.getRange(CodeMirror.Pos(cur.line, cur.ch - 1), cur) == "<";
-    });
-  }
-
-  function completeIfInTag(cm) {
-    return completeAfter(cm, function () {
-      var tok = cm.getTokenAt(cm.getCursor());
-      if (tok.type == "string" && (!/['"]/.test(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
-      var inner = CodeMirror.innerMode(cm.getMode(), tok.state).state;
-      return inner.tagName;
-    });
-  }
-
-  var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-    mode: "xml",
-    lineNumbers: true,
-    extraKeys: {
-      "'<'": completeAfter,
-      "'/'": completeIfAfterLt,
-      "' '": completeIfInTag,
-      "'='": completeIfInTag,
-      "Ctrl-Space": "autocomplete"
-    },
-
-    hintOptions: { schemaInfo: tags }
-
-  });
-  */
 })
