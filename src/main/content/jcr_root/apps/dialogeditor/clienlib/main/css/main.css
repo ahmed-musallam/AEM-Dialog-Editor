@@ -62,3 +62,8 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
   top: 10vh;
 }
 
+.current-dialog-path {
+  margin: 0.5em;
+  font-weight: bolder;
+}
+

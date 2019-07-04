@@ -1,3 +1,7 @@
+/**
+ * This works and I very much aknowledge that it needs refactoring. Maybe some day :) 
+ */
+
 $(function () {
   // constants
   var VERTICAL = 'vertical',
@@ -10,7 +14,8 @@ $(function () {
       componentParentsButton: '#component-parents',
       editorSplitPane: '#split-editor',
       dialogSplitPane: '#split-result',
-      parentsOverlay: '#parents-overlay'
+      parentsOverlay: '#parents-overlay',
+      currentDialogPath: '#current-dialog-path'
     };
 
   var Util = {
@@ -174,6 +179,7 @@ $(function () {
       });
     },
     setDialogPath: function (dialogPath) {
+      $(SELECTOR.currentDialogPath).html(dialogPath); // eh, it works... I'll refactor it someday
       this._dialogPath = dialogPath;
       this._dialogPath = Util.addHtmlExtension(this._dialogPath);
       this._docViewPath = "/apps/dialogeditor.document-view.xml" + Util.removeExtension(this._dialogPath);
