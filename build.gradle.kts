@@ -29,6 +29,5 @@ dependencies {
     compileOnly("com.google.code.gson:gson:2.8.1")
     compileOnly("joda-time:joda-time:2.9.1")
     compileOnly("javax.annotation:javax.annotation-api:1.3.2")
-
     compileOnly("com.adobe.aem:uber-jar:6.4.0:obfuscated-apis")
 }

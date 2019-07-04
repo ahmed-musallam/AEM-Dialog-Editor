@@ -57,3 +57,8 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
     max-width: 100% !important;
 }
 
+.coral3-Dialog.granite-pickerdialog {
+  max-width: 80vw;
+  top: 10vh;
+}
+

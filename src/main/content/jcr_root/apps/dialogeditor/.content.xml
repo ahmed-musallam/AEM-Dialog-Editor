@@ -25,15 +25,24 @@
             <refresh jcr:primaryType="nt:unstructured"
                 sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
                 variant="actionBar"
-                granite:id="refresh"
+                granite:id="save-refresh"
+                granite:title="Save and Refresh"
                 href="#"
-                icon="refresh"/>
-            <separator jcr:primaryType="nt:unstructured"
+                icon="save"/>
+            <splitDirection jcr:primaryType="nt:unstructured"
                 sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
                 variant="actionBar"
                 granite:id="split-direction"
+                granite:title="Change Split Direction"
                 href="#"
                 icon="separator"/>
+            <parents jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
+                variant="actionBar"
+                granite:id="component-parents"
+                granite:title="Component SuperTypes"
+                href="#"
+                icon="viewList"/>
         </primary>
     </actions>
 </jcr:root>

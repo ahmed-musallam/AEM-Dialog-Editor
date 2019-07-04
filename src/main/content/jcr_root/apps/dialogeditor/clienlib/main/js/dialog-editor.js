@@ -1,7 +1,42 @@
 $(function () {
+  // constants
+  var VERTICAL = 'vertical',
+    HORIZONTAL = 'horizontal',
+    SELECTOR = {
+      container: '#dialog-editor',
+      dialog: '#dialog',
+      refreshButton: '#save-refresh',
+      splitDirectionButton: '#split-direction',
+      componentParentsButton: '#component-parents',
+      editorSplitPane: '#split-editor',
+      dialogSplitPane: '#split-result',
+      parentsOverlay: '#parents-overlay'
+    };
+
+  var Util = {
+    removeExtension: function (path) {
+      if (path) {
+        return path.split('.').slice(0, -1).join('.')
+      }
+    },
+    addHtmlExtension: function (path) {
+      if (path && !path.endsWith('.html')) {
+        return path + '.html'
+      } else return path;
+    },
+    prefixWith: function (string, prefix) {
+      if(!string || !prefix) return;
+      var trimmed = string.trim();
+      if(!trimmed.startsWith(prefix)) {
+        return prefix + trimmed;
+      } else return string;
+    }
+  }
 
   window.DialogEditor = {
-    
+    config: {
+      panelDirection: VERTICAL
+    },
     codeEditor: null,
     _wrapper: null,
     _dialog: null,
@@ -9,38 +44,106 @@ $(function () {
     _docViewPath: null,
     _split: null,
 
-
     init: function (selector) {
-      this._wrapper = $('#dialog-editor');
-      this._dialogPath = this._wrapper.data('dialog-path');
-      this._dialog = this._wrapper.find('#dialog');
-      // TODO - do this serverside
-      this._docViewPath = "/apps/dialogeditor.document-view.xml" + this._dialogPath.split('.').slice(0, -1).join('.');
+      this._wrapper = $(SELECTOR.container);
+      this._dialog = this._wrapper.find(SELECTOR.dialog);
+      this.setDialogPath(this._wrapper.data('dialog-path'));
+      var localStorageState = JSON.parse(localStorage.getItem('dialogEditorState')) || {};
+      this.config = Object.assign(this.config, localStorageState)
+
+      if (!this._dialogPath) {
+        this._renderError();
+        return;
+      }
+
 
       // initial refresh
+      this._initParentSelector();
       this._splitPanels();
       this._initCodeEditor();
       this.refresh();
+      this._bindEvents();
 
-      $("#refresh").click((function () {
-        this.updateDialogNode()
-      }).bind(this));
-
-      $("#split-direction").click((function () {
-        if (this._split.pairs[0].direction === 'vertical') {
-          this._splitPanels('horizontal')
-        } else {
-          this._splitPanels('vertical')
-        }
-      }).bind(this));
     },
+    _saveConfig () {
+      localStorage.setItem('dialogEditorState', JSON.stringify(this.config));
+    },
+    _initParentSelector: function () {
+      var that = this;
+      var overlay = new Coral.Overlay().set({
+        alignAt: Coral.Overlay.align.CENTER_BOTTOM,
+        alignMy: Coral.Overlay.align.CENTER_TOP,
+        placement: Coral.Overlay.placement.BOTTOM,
+        target: SELECTOR.componentParentsButton,
+      });
+      var selectList = new Coral.SelectList().set({loading: true});
+      selectList.style.minWidth = '50px';
+      overlay.appendChild(selectList)
+      $parentSelectorButton = $(SELECTOR.componentParentsButton);
+      $(overlay).insertAfter($parentSelectorButton)
+
+      $.get('/apps/dialogeditor.dialog.json' + Util.removeExtension(that._dialogPath))
+        .then(function (response) {
+          selectList.set({loading: false});
+          selectList.items.clear()
+          response.dialogAncestorPaths.forEach(function (path, i) {
+            var space = '&nbsp;'.repeat(i*2);
+            var itemHtml = space + '<coral-icon icon="breakdown"></coral-icon>' + path;
+            var selectItem = new Coral.SelectList.Item().set({ innerHTML: itemHtml, selected: i == 0});
+            selectItem.on('click', function() {
+              var pathWithExtension = Util.addHtmlExtension(path)
+              that.setDialogPath(pathWithExtension);
+              that.refresh();
+              overlay.hide();
+            })
+            selectList.items.add(selectItem)
+          })
+        })
+
+      $parentSelectorButton.click(function () {
+        if (overlay.classList.contains('is-open')) {
+          overlay.hide()
+        } else {
+          overlay.show()
+        }
+      })
+    },
+    _renderError: function () {
+      this._wrapper.children().hide();
+      this._wrapper.append("<h1>No dialog path provided in request suffix, it should be a path to a dialog path<h1>")
+
+      console.warn("No dialog path provided in requets suffix")
+    },
+    /**
+     * Bind event handlers
+     */
+    _bindEvents: function () {
+      var that = this;
+
+      $(SELECTOR.refreshButton)
+        .click((function () {
+          that.updateDialogNode()
+        }));
+
+      $(SELECTOR.splitDirectionButton)
+        .click((function () {
+          if (that._split.pairs[0].direction === VERTICAL) {
+            that._splitPanels(HORIZONTAL)
+          } else {
+            that._splitPanels(VERTICAL)
+          }
+        }));
+    },
+    /**
+     * Ajax call to get the document view XML for current dialog
+     */
     _getDocumentView: function () {
       // TODO: need a better way to handle this
-      var dialogPathWithNoExtension = this._dialogPath.split('.').slice(0, -1).join('.');
+      var dialogPathWithNoExtension = Util.removeExtension(this._dialogPath);
       var docViewPath = "/apps/dialogeditor.document-view.xml" + dialogPathWithNoExtension;
       return $.get(docViewPath)
     },
-    _initCodeEditor: function() {
+    _initCodeEditor: function () {
       this.codeEditor = CodeMirror.fromTextArea(document.getElementById("code"), {
         mode: "xml",
         lineNumbers: true,
@@ -51,17 +154,25 @@ $(function () {
       if (this._split) {
         this._split.destroy();
       }
-      var isVertical = direction === 'vertical';
-      var trueDirection = isVertical ? 'vertical' : 'horizontal';
-      var minSize = isVertical ? [0,0] : [0,590];
-      this._wrapper.removeClass('vertical');
-      this._wrapper.removeClass('horizontal');
+      direction = direction || this.config.panelDirection;
+      var isVertical = direction === VERTICAL;
+      trueDirection = isVertical ? VERTICAL : HORIZONTAL;
+      this.config.panelDirection = trueDirection;
+      this._saveConfig();
+      var minSize = isVertical ? [0, 0] : [0, 590];
+      this._wrapper.removeClass(VERTICAL);
+      this._wrapper.removeClass(HORIZONTAL);
       this._wrapper.addClass(direction);
-      this._split = Split(['#split-editor', '#split-result'], {
+      this._split = Split([SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane], {
         sizes: [50, 50],
         direction: trueDirection,
         minSize: minSize
       });
+    },
+    setDialogPath: function (dialogPath) {
+      this._dialogPath = dialogPath;
+      this._dialogPath = Util.addHtmlExtension(this._dialogPath);
+      this._docViewPath = "/apps/dialogeditor.document-view.xml" + Util.removeExtension(this._dialogPath);
     },
     refresh: function () {
       this.refreshDialog();
@@ -72,22 +183,40 @@ $(function () {
       var that = this;
       var scrollInfo = that.codeEditor.getScrollInfo();
       that._getDocumentView()
-      .then(function (result) {
-        that.codeEditor.setValue(result);
-        that.codeEditor.scrollTo(scrollInfo.left, scrollInfo.top);
-      })
+        .then(function (result) {
+          that.codeEditor.setValue(result);
+          that.codeEditor.scrollTo(scrollInfo.left, scrollInfo.top);
+        })
     },
 
     refreshDialog: function () {
       var that = this;
-      $.get(that._dialogPath + '/')
+      var overridePath = Util.prefixWith(that._dialogPath,'/mnt/override')
+      $.get(overridePath + '/')
         .then(function (data) {
-          var dialogEl = $.parseHTML(data).find(function (el) {
+          var parsedHtml = $.parseHTML(data);
+          var dialogEl = parsedHtml.find(function (el) {
             return el.tagName && el.tagName === "CORAL-DIALOG"
           })
+          var css = parsedHtml.filter(function (el) {
+            return el.tagName && el.tagName === "LINK"
+          });
+          var js = parsedHtml.filter(function (el) {
+            return el.tagName && el.tagName === "SCRIPT"
+          });
           if (dialogEl) {
+            // insert dialog as well as all JS/CSS scripts
             that._dialog.empty().append(dialogEl)
+            that._dialog.append(css);
+            that._dialog.append(js);
           }
+          // simulate dialog-loaded
+          setTimeout(function() {
+            $(document).trigger("dialog-loaded", {
+              dialog: dialogEl
+            })
+          }, 1000);
+         
         });
     },
     updateDialogNode: function () {
