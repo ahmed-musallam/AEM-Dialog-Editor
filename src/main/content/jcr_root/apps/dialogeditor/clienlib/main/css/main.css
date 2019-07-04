@@ -35,7 +35,7 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
 }
 
 
-.coral3-Dialog {
+#dialog .coral3-Dialog {
     overflow: visible !important;
     display: block !important;
     opacity: 1 !important;
@@ -45,7 +45,7 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
     margin: 0 auto !important;
 }
 
-.coral3-Dialog-wrapper {
+#dialog .coral3-Dialog-wrapper {
     margin: 0 !important;
     position: relative !important;
     min-width: 0 !important;
@@ -57,7 +57,7 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
     max-width: 100% !important;
 }
 
-.coral3-Dialog.granite-pickerdialog {
+#dialog .coral3-Dialog.granite-pickerdialog {
   max-width: 80vw;
   top: 10vh;
 }
@@ -67,3 +67,10 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
   font-weight: bolder;
 }
 
+#dialog-explorer-dialog .coral3-ButtonList-item {
+  width: 100% !important;
+}
+#dialog-explorer-dialog coral-dialog-content {
+  max-height: 80vh;
+  overflow-y: scroll;
+}

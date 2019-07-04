@@ -44,5 +44,14 @@
                 href="#"
                 icon="viewList"/>
         </primary>
+        <secondary jcr:primaryType="nt:unstructured">
+            <explore jcr:primaryType="nt:unstructured"
+                sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
+                variant="actionBar"
+                granite:id="dialog-explorer"
+                granite:title="Explore Dialogs under /apps"
+                href="#"
+                icon="search"/>
+        </secondary>
     </actions>
 </jcr:root>

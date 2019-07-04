@@ -1,2 +1,3 @@
 js/toast.js
 js/dialog-editor.js
+js/dialog-explorer.js
