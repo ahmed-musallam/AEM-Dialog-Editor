@@ -1,3 +1,5 @@
 js/toast.js
+js/util.js
+js/panel-split.js
 js/dialog-editor.js
 js/dialog-explorer.js

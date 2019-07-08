@@ -18,41 +18,23 @@ $(function () {
       currentDialogPath: '#current-dialog-path'
     };
 
-  var Util = {
-    removeExtension: function (path) {
-      if (path) {
-        return path.split('.').slice(0, -1).join('.')
-      }
-    },
-    addHtmlExtension: function (path) {
-      if (path && !path.endsWith('.html')) {
-        return path + '.html'
-      } else return path;
-    },
-    prefixWith: function (string, prefix) {
-      if (!string || !prefix) return;
-      var trimmed = string.trim();
-      if (!trimmed.startsWith(prefix)) {
-        return prefix + trimmed;
-      } else return string;
-    }
-  }
-
-  window.DialogEditor = {
+  window.dialogEditor = window.dialogEditor || {};
+  var Util = window.dialogEditor.Util;
+  window.dialogEditor.App = {
     config: {
       panelDirection: VERTICAL
     },
     codeEditor: null,
-    _wrapper: null,
-    _dialog: null,
-    _dialogPath: null,
+    _containerEl: null, // the editor container element 
+    _dialogContainerEl: null,  // the dialog preview container
+    _dialogPath: null, // the current dialog path in JCR
     _docViewPath: null,
     _split: null,
 
     init: function (selector) {
-      this._wrapper = $(SELECTOR.container);
-      this._dialog = this._wrapper.find(SELECTOR.dialog);
-      this.setDialogPath(this._wrapper.data('dialog-path'));
+      this._containerEl = $(SELECTOR.container);
+      this._dialogContainerEl = this._containerEl.find(SELECTOR.dialog);
+      this.setDialogPath(this._containerEl.data('dialog-path'));
       var localStorageState = JSON.parse(localStorage.getItem('dialogEditorState')) || {};
       this.config = Object.assign(this.config, localStorageState)
 
@@ -64,7 +46,7 @@ $(function () {
 
       // initial refresh
       this._initParentSelector();
-      this._splitPanels();
+      this._panelSplit = new window.dialogEditor.PanelSplit(SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane)
       this._initCodeEditor();
       this.refresh();
       this._bindEvents();
@@ -118,8 +100,8 @@ $(function () {
       });
     },
     _renderError: function () {
-      this._wrapper.children().hide();
-      this._wrapper.append("<h1>No dialog path provided in request suffix, it should be a path to a dialog path<h1>")
+      this._containerEl.children().hide();
+      this._containerEl.append("<h1>No dialog path provided in request suffix, it should be a path to a dialog path<h1>")
 
       console.warn("No dialog path provided in requets suffix")
     },
@@ -136,11 +118,7 @@ $(function () {
 
       $(SELECTOR.splitDirectionButton)
         .click((function () {
-          if (that._split.pairs[0].direction === VERTICAL) {
-            that._splitPanels(HORIZONTAL)
-          } else {
-            that._splitPanels(VERTICAL)
-          }
+          that.togglePanelDirection();
         }));
     },
     /**
@@ -159,30 +137,19 @@ $(function () {
         //lineWrapping: true,
       });
     },
-    _splitPanels: function (direction) {
-      if (this._split) {
-        this._split.destroy();
-      }
-      direction = direction || this.config.panelDirection;
-      var isVertical = direction === VERTICAL;
-      trueDirection = isVertical ? VERTICAL : HORIZONTAL;
-      this.config.panelDirection = trueDirection;
+    // changes panel direction
+    togglePanelDirection: function () {
+      this.config.panelDirection = this._panelSplit.toggleDirection()
       this._saveConfig();
-      var minSize = isVertical ? [0, 0] : [0, 590];
-      this._wrapper.removeClass(VERTICAL);
-      this._wrapper.removeClass(HORIZONTAL);
-      this._wrapper.addClass(direction);
-      this._split = Split([SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane], {
-        sizes: [50, 50],
-        direction: trueDirection,
-        minSize: minSize
-      });
     },
+    /**
+     * Set current dialog path being worked on
+     */
     setDialogPath: function (dialogPath) {
-      $(SELECTOR.currentDialogPath).html(dialogPath); // eh, it works... I'll refactor it someday
+      $(SELECTOR.currentDialogPath).html(dialogPath);
       this._dialogPath = dialogPath;
       this._dialogPath = Util.addHtmlExtension(this._dialogPath);
-      this._docViewPath = "/apps/dialogeditor.document-view.xml" + Util.removeExtension(this._dialogPath);
+      this._docViewPath = Util.getDocumentViewPath(this._dialogPath);
     },
     refresh: function () {
       this.refreshDialog();
@@ -216,9 +183,9 @@ $(function () {
           });
           if (dialogEl) {
             // insert dialog as well as all JS/CSS scripts
-            that._dialog.empty().append(dialogEl)
-            that._dialog.append(css);
-            that._dialog.append(js);
+            that._dialogContainerEl.empty().append(dialogEl)
+            that._dialogContainerEl.append(css);
+            that._dialogContainerEl.append(js);
           }
           // simulate dialog-loaded
           setTimeout(function () {
@@ -249,5 +216,5 @@ $(function () {
     }
   }
 
-  window.DialogEditor.init();
+  window.dialogEditor.App.init();
 })
