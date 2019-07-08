@@ -18,7 +18,7 @@ $(function () {
   var Util = window.dialogEditor.Util;
   window.dialogEditor.App = {
     config: {
-      panelDirection: 'vertical' // default direction
+      panelDirection: 'horizontal' // default direction
     },
     _containerEl: null, // the editor container element 
     _dialogContainerEl: null,  // the dialog preview container
@@ -41,8 +41,10 @@ $(function () {
 
 
       // initial refresh
-      this._superTypeSelector = new window.dialogEditor.SuperTypeSelector(this._dialogPath)
-      this._panelSplit = new window.dialogEditor.PanelSplit(SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane)
+      this._superTypeSelector = new window.dialogEditor.SuperTypeSelector(this._dialogPath);
+      this._panelSplit = new window.dialogEditor.PanelSplit(SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane);
+      this._panelSplit.changeDirection(this.config.panelDirection);
+      this.updatePanelDirectionButton(this.config.panelDirection)
       this._initCodeEditor();
       this.refresh();
       this._bindEvents();
@@ -70,7 +72,7 @@ $(function () {
 
       $(SELECTOR.splitDirectionButton)
         .click((function () {
-          that.togglePanelDirection();
+          var newDirection = that.togglePanelDirection();
         }));
       
       // handle parent selector change
@@ -91,7 +93,14 @@ $(function () {
     // changes panel direction
     togglePanelDirection: function () {
       this.config.panelDirection = this._panelSplit.toggleDirection()
+      this.updatePanelDirectionButton(this.config.panelDirection)
       this._saveConfig();
+    },
+    updatePanelDirectionButton: function (newDirection) {
+      var splitDirectionButton = $(SELECTOR.splitDirectionButton)
+      splitDirectionButton.removeClass('vertical');
+      splitDirectionButton.removeClass('horizontal');
+      splitDirectionButton.addClass(newDirection);
     },
     /**
      * Set current dialog path being worked on. Shoul be followed with a call to refresh() for changes to take effect.

@@ -74,3 +74,7 @@ coral-panelstack[maximized] > coral-panel > coral-panel-content {
   max-height: 80vh;
   overflow-y: scroll;
 }
+
+#split-direction.horizontal {
+  transform: rotate(90deg);
+}
