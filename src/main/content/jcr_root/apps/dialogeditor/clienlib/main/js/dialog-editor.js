@@ -4,17 +4,13 @@
 
 $(function () {
   // constants
-  var VERTICAL = 'vertical',
-    HORIZONTAL = 'horizontal',
     SELECTOR = {
       container: '#dialog-editor',
       dialog: '#dialog',
       refreshButton: '#save-refresh',
       splitDirectionButton: '#split-direction',
-      componentParentsButton: '#component-parents',
       editorSplitPane: '#split-editor',
       dialogSplitPane: '#split-result',
-      parentsOverlay: '#parents-overlay',
       currentDialogPath: '#current-dialog-path'
     };
 
@@ -22,14 +18,14 @@ $(function () {
   var Util = window.dialogEditor.Util;
   window.dialogEditor.App = {
     config: {
-      panelDirection: VERTICAL
+      panelDirection: 'vertical' // default direction
     },
-    codeEditor: null,
     _containerEl: null, // the editor container element 
     _dialogContainerEl: null,  // the dialog preview container
     _dialogPath: null, // the current dialog path in JCR
     _docViewPath: null,
-    _split: null,
+    codeEditor: null, // CodeMirror instance
+    _split: null, // PanelSplit instance
 
     init: function (selector) {
       this._containerEl = $(SELECTOR.container);
@@ -45,7 +41,7 @@ $(function () {
 
 
       // initial refresh
-      this._initParentSelector();
+      this._superTypeSelector = new window.dialogEditor.SuperTypeSelector(this._dialogPath)
       this._panelSplit = new window.dialogEditor.PanelSplit(SELECTOR.editorSplitPane, SELECTOR.dialogSplitPane)
       this._initCodeEditor();
       this.refresh();
@@ -54,50 +50,6 @@ $(function () {
     },
     _saveConfig() {
       localStorage.setItem('dialogEditorState', JSON.stringify(this.config));
-    },
-    _initParentSelector: function () {
-      var that = this;
-      var overlay = new Coral.Overlay().set({
-        alignAt: Coral.Overlay.align.CENTER_BOTTOM,
-        alignMy: Coral.Overlay.align.CENTER_TOP,
-        placement: Coral.Overlay.placement.BOTTOM,
-        target: SELECTOR.componentParentsButton,
-      });
-      var selectList = new Coral.SelectList().set({ loading: true });
-      selectList.style.minWidth = '50px';
-      overlay.appendChild(selectList)
-      $parentSelectorButton = $(SELECTOR.componentParentsButton);
-      $(overlay).insertAfter($parentSelectorButton)
-
-      $.get('/apps/dialogeditor.dialog.json' + Util.removeExtension(that._dialogPath))
-        .then(function (response) {
-          selectList.set({ loading: false });
-          selectList.items.clear()
-          response.dialogAncestorPaths.forEach(function (path, i) {
-            var space = '&nbsp;'.repeat(i * 2);
-            var itemHtml = space + '<coral-icon icon="breakdown"></coral-icon>' + path;
-            var selectItem = new Coral.SelectList.Item().set({ innerHTML: itemHtml, selected: i == 0 });
-            selectItem.on('click', function () {
-              var pathWithExtension = Util.addHtmlExtension(path)
-              that.setDialogPath(pathWithExtension);
-              that.refresh();
-              overlay.hide();
-            })
-            selectList.items.add(selectItem)
-          })
-        })
-
-      $parentSelectorButton.click(function () {
-        event.stopPropagation(); // don't bubble (gum) ;)
-        if (overlay.classList.contains('is-open')) {
-          overlay.hide()
-        } else {
-          overlay.show()
-        }
-      });
-      $(window).click(function () {
-        overlay.hide() // click outside the overlay
-      });
     },
     _renderError: function () {
       this._containerEl.children().hide();
@@ -120,15 +72,14 @@ $(function () {
         .click((function () {
           that.togglePanelDirection();
         }));
-    },
-    /**
-     * Ajax call to get the document view XML for current dialog
-     */
-    _getDocumentView: function () {
-      // TODO: need a better way to handle this
-      var dialogPathWithNoExtension = Util.removeExtension(this._dialogPath);
-      var docViewPath = "/apps/dialogeditor.document-view.xml" + dialogPathWithNoExtension;
-      return $.get(docViewPath)
+      
+      // handle parent selector change
+      that._superTypeSelector.addHandler(function(path) {
+        var pathWithExtension = Util.addHtmlExtension(path)
+        that.setDialogPath(pathWithExtension);
+        that.refresh();
+      })
+        
     },
     _initCodeEditor: function () {
       this.codeEditor = CodeMirror.fromTextArea(document.getElementById("code"), {
@@ -143,7 +94,7 @@ $(function () {
       this._saveConfig();
     },
     /**
-     * Set current dialog path being worked on
+     * Set current dialog path being worked on. Shoul be followed with a call to refresh() for changes to take effect.
      */
     setDialogPath: function (dialogPath) {
       $(SELECTOR.currentDialogPath).html(dialogPath);
@@ -151,21 +102,32 @@ $(function () {
       this._dialogPath = Util.addHtmlExtension(this._dialogPath);
       this._docViewPath = Util.getDocumentViewPath(this._dialogPath);
     },
+
+    /**
+     * Pull the dialog code and html from JCR and update UI.
+     */
     refresh: function () {
       this.refreshDialog();
       this.refreshCode();
     },
 
+    /**
+     * Get the dialog XML from JCR.
+     */
     refreshCode: function () {
       var that = this;
       var scrollInfo = that.codeEditor.getScrollInfo();
-      that._getDocumentView()
+      var docViewPath = Util.getDocumentViewPath(this._dialogPath)
+      $.get(docViewPath)
         .then(function (result) {
           that.codeEditor.setValue(result);
           that.codeEditor.scrollTo(scrollInfo.left, scrollInfo.top);
         })
     },
 
+    /**
+     * Get dialog HTML and replace displayed dialog.
+     */
     refreshDialog: function () {
       var that = this;
       var overridePath = Util.prefixWith(that._dialogPath, '/mnt/override')
@@ -187,15 +149,18 @@ $(function () {
             that._dialogContainerEl.append(css);
             that._dialogContainerEl.append(js);
           }
-          // simulate dialog-loaded
+          // TODO: test if this actually works for custom code that depends on it.
           setTimeout(function () {
             $(document).trigger("dialog-loaded", {
               dialog: dialogEl
             })
           }, 1000);
-
         });
     },
+
+    /**
+     * Post changes from editor to the JCR.
+     */
     updateDialogNode: function () {
       var that = this;
       $.ajax({

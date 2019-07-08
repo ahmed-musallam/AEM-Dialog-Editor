@@ -39,8 +39,8 @@
             <parents jcr:primaryType="nt:unstructured"
                 sling:resourceType="granite/ui/components/coral/foundation/anchorbutton"
                 variant="actionBar"
-                granite:id="component-parents"
-                granite:title="Component SuperTypes"
+                granite:id="super-type-selector"
+                granite:title="SuperType Selector"
                 href="#"
                 icon="viewList"/>
         </primary>

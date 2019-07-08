@@ -1,5 +1,6 @@
 js/toast.js
 js/util.js
+js/super-type-selector.js
 js/panel-split.js
 js/dialog-editor.js
 js/dialog-explorer.js
